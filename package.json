@@ -1,5 +1,5 @@
 {
-  "name": "github-reason-list",
+  "name": "github-notification-viewer",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
