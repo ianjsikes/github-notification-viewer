@@ -6,7 +6,7 @@ let make
   _children => {
   ...component,
   render: fun _self =>
-    <div>
+    <main className="mw6 center">
       (
         ReasonReact.arrayToElement (
           Array.map
@@ -17,5 +17,5 @@ let make
             notifications
         )
       )
-    </div>
+    </main>
 };

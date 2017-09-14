@@ -8,8 +8,7 @@ type action =
 
 type state = {notifications: option (array notification)};
 
-/* TODO: Don't hardcode this! */
-let githubToken = "88eec6bf97c69a76f204cf6cb2411d0cd32853db";
+let githubToken: string = [%bs.raw {| localStorage.getItem("githubToken") |}];
 
 let component = ReasonReact.reducerComponent "App";
 
