@@ -95,7 +95,20 @@ let make _children => {
     let notificationList =
       switch self.state.notifications {
       | Some n => <NotificationList notifications=n markAsRead=deleteNotification />
-      | None => ReasonReact.stringToElement "Loading..."
+      | None => switch loggedIn {
+        | true =>
+          <div className="mw6 center tc mv3">
+            <h2 className="f5 f4-m f3-l fw2 black-50 mt0 lh-copy">
+              (ReasonReact.stringToElement "Loading...")
+            </h2>
+          </div>
+        | false =>
+          <div className="mw6 center tc mv3">
+            <h2 className="f5 f4-m f3-l fw2 black-50 mt0 lh-copy">
+              (ReasonReact.stringToElement "Log in to see notifications.")
+            </h2>
+          </div>
+        }
       };
     <div className="App"> <Header loggedIn onLogout=logout /> notificationList </div>
   }
