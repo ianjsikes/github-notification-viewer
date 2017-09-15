@@ -4,7 +4,7 @@ let make notification::(notification: Notifications.notification) ::onDelete _ch
   ...component,
   render: fun _self =>
     <a className="no-underline underline-hover" href=(Notifications.githubUrl notification)>
-      <article className="dt w-100 bb b--black-05 pb2 mt2">
+      <article className="dt w-100 bb b--black-05 pb2 mt2 mh2">
         <div className="dtc w2 w3-ns v-mid">
           <img src=notification.repository.owner.avatar_url className="ba b--black-10 db br2 w2 w3-ns h2 h3-ns" alt="avatar" />
         </div>
