@@ -2,6 +2,7 @@
   "name": "github-notification-viewer",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://ianjsikes.github.io/github-notification-viewer",
   "dependencies": {
     "bs-fetch": "github:buckletypes/bs-fetch",
     "bs-json": "github:buckletypes/bs-json",
