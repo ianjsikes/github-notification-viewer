@@ -4,9 +4,14 @@ open Notifications;
 
 type action =
   | LoadNotifications (array notification)
-  | DeleteNotification notification;
+  | DeleteNotification notification
+  | Login string
+  | Logout;
 
-type state = {notifications: option (array notification)};
+type state = {
+  token: option string,
+  notifications: option (array notification)
+};
 
 let githubToken: string = [%bs.raw {| localStorage.getItem("githubToken") |}];
 
@@ -14,53 +19,84 @@ let component = ReasonReact.reducerComponent "App";
 
 let make _children => {
   ...component,
-  initialState: fun () => {notifications: None},
+  initialState: fun () => {token: None, notifications: None},
   didMount: fun self => {
-    fetchNotifications githubToken |>
-    Js.Promise.then_ (
-      fun response =>
-        {
+    let loadNotifications token =>
+      fetchNotifications token |>
+      Js.Promise.then_ (
+        fun response =>
           self.reduce
-            (fun () => LoadNotifications (Js.Array.filter (fun n => n.unread) response)) ()
-        } |> Js.Promise.resolve
-    ) |> ignore;
+            (fun () => LoadNotifications (Js.Array.filter (fun n => n.unread) response)) () |> Js.Promise.resolve
+      ) |> ignore;
+    switch (Github.getLocalToken ()) {
+    | Some token =>
+      self.reduce (fun () => Login token) ();
+      loadNotifications token
+    | None =>
+      switch (Github.getCodeFromUrl ()) {
+      | Some code =>
+        /* request token from api */
+        Github.requestToken code |>
+        Js.Promise.then_ (
+          fun token => {
+            self.reduce (fun () => Login token) ();
+            Github.setLocalToken token;
+            Js.Promise.resolve (loadNotifications token)
+          }
+        ) |> ignore
+      | None => ()
+      };
+      ()
+    };
     ReasonReact.NoUpdate
   },
   reducer: fun action state =>
     switch action {
-    | LoadNotifications notifications => ReasonReact.Update {notifications: Some notifications}
+    | LoadNotifications notifications =>
+      ReasonReact.Update {...state, notifications: Some notifications}
     | DeleteNotification notification =>
       switch state.notifications {
       | Some notifications =>
         ReasonReact.Update {
+          ...state,
           notifications: Some (Js.Array.filter (fun n => n.id != notification.id) notifications)
         }
       | None => ReasonReact.NoUpdate
       }
+    | Login token => ReasonReact.Update {...state, token: Some token}
+    | Logout => ReasonReact.Update {token: None, notifications: None}
     },
   render: fun self => {
-    let deleteNotification n => {
+    let loggedIn =
+      switch self.state.token {
+      | Some _ => true
+      | None => false
+      };
+    let logout e =>
+      self.reduce
+        (
+          fun e => {
+            ReactEventRe.Mouse.preventDefault e;
+            Github.deleteLocalToken ();
+            Logout
+          }
+        )
+        e;
+    let deleteNotification n =>
       markAsRead githubToken n |>
-      Js.Promise.then_ (fun success => {
-        switch success {
-        | true => self.reduce (fun () => DeleteNotification n) ()
-        | false => Js.log ("Could not delete notification " ^ n.id)
-        };
-        Js.Promise.resolve ();
-      }) |>
-      ignore;
-    };
-
+      Js.Promise.then_ (
+        fun success => {
+          success ?
+            self.reduce (fun () => DeleteNotification n) () :
+            Js.log ("Could not delete notification " ^ n.id);
+          Js.Promise.resolve ()
+        }
+      ) |> ignore;
     let notificationList =
       switch self.state.notifications {
-      | Some n => <NotificationList notifications=n markAsRead=deleteNotification/>
+      | Some n => <NotificationList notifications=n markAsRead=deleteNotification />
       | None => ReasonReact.stringToElement "Loading..."
       };
-    <div className="App">
-      <div className="App-header">
-        <h1> (ReasonReact.stringToElement "Reason Projects") </h1>
-      </div>
-      notificationList
-    </div>
+    <div className="App"> <Header loggedIn onLogout=logout /> notificationList </div>
   }
 };

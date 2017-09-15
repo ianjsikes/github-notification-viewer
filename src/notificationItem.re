@@ -1,7 +1,5 @@
 let component = ReasonReact.statelessComponent "NotificationItem";
 
-
-
 let make notification::(notification: Notifications.notification) ::onDelete _children => {
   ...component,
   render: fun _self =>
