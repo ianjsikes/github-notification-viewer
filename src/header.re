@@ -26,7 +26,7 @@ let make
   render: fun _self => {
     let btn = switch (loggedIn) {
     | true => logoutButton onLogout
-    | false => loginButton "27778e7d924f0023ca79" (Github.getLocationOrigin ())
+    | false => loginButton "27778e7d924f0023ca79" "https://ianjsikes.github.io/github-notification-viewer"
     };
 
     <nav className="flex justify-between bb b--white-10" style=(ReactDOMRe.Style.make backgroundColor::"#000000" ())>
